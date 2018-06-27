@@ -1,0 +1,18 @@
+body {
+    margin: 0px;
+}
+
+#idContainer {
+    position:absolute;
+    top:90vh;
+    left:5vw;
+    font-family:Verdana, Geneva, sans-serif;
+    font-weight:bold;
+}
+
+#idContainer input {
+    background-color:rgba(0,0,0,0);
+    font-family:Verdana, Geneva, sans-serif;
+    font-weight:bold;
+    border:none;
+}
