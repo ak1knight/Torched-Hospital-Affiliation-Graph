@@ -9,3 +9,11 @@ Add a file named `credentials.json` to the root folder of the repo in this forma
     "password":"XXXXX"
 }
 ```
+You have to set up a local http server to run the viz locally. This can be done easily with python:
+```
+#Python 3
+python -m http.server
+
+#Python 2
+python -m SimpleHTTPServer
+```
