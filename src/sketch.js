@@ -19,8 +19,6 @@ var datasetFields = {
 function preload() {
   //Use dummy data when testing to not constantly ping the server
   //populateGraph(JSON.parse(data), JSON.parse(hospData));
-  // let credentials = loadJSON('../credentials.json');
-  // authenticate(credentials.email, credentials.password);
   httpDo(
     '../credentials.json',
     {
@@ -94,7 +92,7 @@ function getPrimaryEntityData(id, entityDataSource, callback) {
           'Content-Type': 'application/json',
           'Authorization': 'Bearer ' + authToken
         },
-        body: '{"fields":["' + datasetFields[entityDataSource].primaryname + '"],"filters":[{"field":"' + datasetFields[entityDataSource].id + '","test":"=","value":' + id + '}]}'
+        body: '{"fields":["' + datasetFields[entityDataSource].primaryname + '","' + datasetFields[entityDataSource].id + '"],"filters":[{"field":"' + datasetFields[entityDataSource].id + '","test":"=","value":' + id + '}]}'
       },
       request => {
         resolve(callback(JSON.parse(request)));
@@ -106,7 +104,7 @@ function getPrimaryEntityData(id, entityDataSource, callback) {
 function populateGraph(affiliatedEntityArray, primaryEntityData, affiliatedEntityType, primaryEntityType) {
   const centerX = window.innerWidth / 2 - 50;
   const centerY = window.innerHeight / 2 - 50;
-  nodes.push(new Entity(centerX, centerY, 100, primaryEntityData[0][datasetFields[primaryEntityType].primaryname], primaryEntityType));
+  nodes.push(new Entity(centerX, centerY, 100, primaryEntityData[0][datasetFields[primaryEntityType].primaryname], primaryEntityType, primaryEntityData[0][datasetFields[primaryEntityType].id]));
 
   const filtered = affiliatedEntityArray.filter(e => parseInt(e[Object.keys(e)[2]]) >= 1);
   const nodeAngle = (2 * PI) / filtered.length;
@@ -117,7 +115,7 @@ function populateGraph(affiliatedEntityArray, primaryEntityData, affiliatedEntit
     const nodeX = centerX + (300 * cos((nodeAngle * i) - PI/2));
     const nodeY = centerY + (300 * sin((nodeAngle * i) - PI/2));
     console.log(e);
-    nodes.push(new WeightedEntity(nodeX, nodeY, radius, e[datasetFields[affiliatedEntityType].affiliationname], affiliatedEntityType, size ));
+    nodes.push(new WeightedEntity(nodeX, nodeY, radius, e[datasetFields[affiliatedEntityType].affiliationname], affiliatedEntityType, e.id, size ));
   });
 
   nodes.slice(1).forEach(e => {
@@ -126,10 +124,14 @@ function populateGraph(affiliatedEntityArray, primaryEntityData, affiliatedEntit
 }
 
 function updateDataForID() {
+  updateDataForID(document.querySelector('#entityid').value, 'hospital', 'physiciangroup');
+}
+
+function updateDataForID(id, fromDataset, toDataset) {
   nodes = [];
   edges = [];
 
-  getData(document.querySelector('#entityid').value, 'physiciangroup', 'hospital');
+  getData(id, fromDataset, toDataset);
 }
 
 function setup() {
@@ -147,6 +149,19 @@ function draw() {
   });
 }
 
+function mouseClicked() {
+  const clickedNode = nodes.filter(n => n.contains(mouseX, mouseY))[0];
+  console.log(clickedNode);
+
+  if (clickedNode !== 'undefined') {
+    if (clickedNode.type === 'physiciangroup') {
+      updateDataForID(clickedNode.id, 'physiciangroup', 'hospital');
+    } else {
+      updateDataForID(clickedNode.id, 'hospital', 'physiciangroup');
+    }
+  }
+}
+
 class GraphNode {
   constructor(x, y, radius) {
     this.x = x;
@@ -157,16 +172,23 @@ class GraphNode {
   draw() {
     ellipse(this.x, this.y, this.radius * 2);
   }
+
+  contains(x, y) {
+    const distance = pow(this.x - x, 2) + pow(this.y - y, 2);
+    return distance < pow(this.radius, 2);
+  }
 }
 
 class Entity extends GraphNode {
-  constructor(x, y, radius, entityName, entityType) {
+  constructor(x, y, radius, name, type, id) {
     super(x, y, radius);
-    this.entityName = entityName;
+    this.name = name;
+    this.type = type;
+    this.id = id;
   }
 
   get label() {
-    return this.entityName;
+    return this.name;
   }
 
   draw() {
@@ -177,13 +199,13 @@ class Entity extends GraphNode {
 }
 
 class WeightedEntity extends Entity {
-  constructor(x, y, radius, entityName, entityType, entityWeight) {
-    super(x, y, radius, entityName);
-    this.entityWeight = entityWeight;
+  constructor(x, y, radius, name, type, id, weight) {
+    super(x, y, radius, name, type, id);
+    this.weight = weight;
   }
 
   get label() {
-    return this.entityName + '\n' + this.entityWeight + '%';
+    return this.name + '\n' + this.weight + '%';
   }
 }
 
