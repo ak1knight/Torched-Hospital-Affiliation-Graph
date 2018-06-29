@@ -5,14 +5,14 @@ var hospData = '[{"name":"Garfield Memorial Hospital"}]';
 var authToken;
 var datasetFields = {
   'hospital' : {
-    'id' : 'torch_hospital_id',
-    'primaryname' : 'name',
-    'affiliationname' : 'name'
+    id : 'torch_hospital_id',
+    primaryname : 'name',
+    affiliationname : 'name'
   },
   'physiciangroup' : {
-    'id' : 'torch_provider_group_id',
-    'primaryname' : 'organizationlegalname',
-    'affiliationname' : 'name'
+    id : 'torch_provider_group_id',
+    primaryname : 'organizationlegalname',
+    affiliationname : 'name'
   }
 }
 
@@ -123,15 +123,15 @@ function populateGraph(affiliatedEntityArray, primaryEntityData, affiliatedEntit
   });
 }
 
-function updateDataForID() {
-  updateDataForID(document.querySelector('#entityid').value, 'hospital', 'physiciangroup');
-}
-
 function updateDataForID(id, fromDataset, toDataset) {
   nodes = [];
   edges = [];
 
   getData(id, fromDataset, toDataset);
+}
+
+function updateData() {
+  updateDataForID(document.querySelector('#entityid').value, 'hospital', 'physiciangroup');
 }
 
 function setup() {
@@ -153,7 +153,7 @@ function mouseClicked() {
   const clickedNode = nodes.filter(n => n.contains(mouseX, mouseY))[0];
   console.log(clickedNode);
 
-  if (clickedNode !== 'undefined') {
+  if (clickedNode != null) {
     if (clickedNode.type === 'physiciangroup') {
       updateDataForID(clickedNode.id, 'physiciangroup', 'hospital');
     } else {
