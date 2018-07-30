@@ -141,6 +141,8 @@ function populateGraph(affiliatedEntityArray, primaryEntityData, affiliatedEntit
   nodes.slice(1).forEach(e => {
     edges.push(new Edge(nodes[0], e));
   });
+
+  runDraw();
 }
 
 function updateDataForID(id, fromDataset, toDataset) {
@@ -164,7 +166,16 @@ function setup() {
 }
 
 function draw() {
-  background(255);
+  // background(255);
+  // nodes.forEach(n => {
+  //   n.draw();
+  // });
+  // edges.forEach(e => {
+  //   e.draw();
+  // });
+}
+
+function runDraw() {
   nodes.forEach(n => {
     n.draw();
   });
@@ -181,6 +192,8 @@ function mouseClicked() {
     document.querySelector('#entitytype').value = clickedNode.type;
     document.querySelector('#entityid').value = clickedNode.id;
 
+    document.querySelector('#chart').innerHTML = '';
+
     if (clickedNode.type === 'physiciangroup') {
       updateDataForID(clickedNode.id, 'physiciangroup', 'hospital');
     } else {
@@ -194,13 +207,18 @@ class GraphNode {
     this.x = x;
     this.y = y;
     this.radius = radius;
+    this.drawingGroup = document.createElementNS("http://www.w3.org/2000/svg","g");
+    document.getElementById("chart").appendChild(this.drawingGroup);
   }
 
   draw() {
-    stroke('black');
-    strokeWeight(2);
-    ellipse(this.x, this.y, this.radius * 2);
-    strokeWeight(1);
+    let circle = document.createElementNS("http://www.w3.org/2000/svg","circle");
+
+    circle.setAttributeNS(null,"cx",this.x);
+    circle.setAttributeNS(null,"cy",this.y);
+    circle.setAttributeNS(null,"r",this.radius);
+
+    this.drawingGroup.appendChild(circle);
   }
 
   contains(x, y) {
@@ -223,11 +241,17 @@ class Entity extends GraphNode {
 
   draw() {
     super.draw();
-    textAlign(CENTER, CENTER);
-    textFont('Verdana');
-    noStroke();
-    text(this.label, this.x - this.radius + 5, this.y - this.radius + 5, this.radius * 2 - 10, this.radius * 2 - 10);
-    stroke('black');
+    let text = document.createElementNS("http://www.w3.org/2000/svg","foreignObject");
+
+    text.setAttributeNS(null, "x", this.x - this.radius + 5);
+    text.setAttributeNS(null, "y", this.y - this.radius + 5);
+    text.setAttributeNS(null, "width", this.radius * 2 - 10);
+    text.setAttributeNS(null, "height", this.radius * 2 - 10);
+    text.setAttributeNS(null, "class", "entityTitle");
+
+    text.innerHTML = '<div class="entityTitle"><p>'+this.label+'</p></div>';
+
+    this.drawingGroup.appendChild(text);
   }
 }
 
@@ -238,7 +262,7 @@ class WeightedEntity extends Entity {
   }
 
   get label() {
-    return this.name + '\n' + this.weight + '%';
+    return this.name + '<br>' + this.weight + '%';
   }
 }
 
@@ -257,8 +281,15 @@ class Edge {
     let l = this.left;
     let r = this.right;
     let theta = atan((r.y - l.y)/(r.x - l.x))
-    
-    line(l.x + (l.radius * cos(theta)), l.y + (l.radius * sin(theta)), r.x - (r.radius * cos(theta)), r.y - (r.radius * sin(theta)));
+
+    let line = document.createElementNS("http://www.w3.org/2000/svg","line");
+
+    line.setAttributeNS(null, "x1", l.x + (l.radius * cos(theta)));
+    line.setAttributeNS(null, "y1", l.y + (l.radius * sin(theta)));
+    line.setAttributeNS(null, "x2", r.x - (r.radius * cos(theta)));
+    line.setAttributeNS(null, "y2", r.y - (r.radius * sin(theta)));
+
+    document.getElementById("chart").appendChild(line);
   }
 }
 

@@ -1,5 +1,15 @@
 body {
-    margin: 0px;
+    margin: 0;
+    padding: 0;
+    font-family:Verdana, Helvetica, sans-serif;
+}
+
+svg { 
+    position:fixed; 
+    top:0; 
+    left:0; 
+    height:100%; 
+    width:100% 
 }
 
 #idContainer {
@@ -25,4 +35,26 @@ body {
     /* font-weight:bold; */
     border:none;
     font-size: 16px;
+}
+
+svg p {
+    color: white;
+    text-align: center;
+    font-size: 12px;
+}
+
+svg div.entityTitle {
+    height: 100%;
+    width: 100%;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+}
+
+svg line {
+    stroke: rgb(238, 64, 64);
+}
+
+svg circle {
+    fill: rebeccapurple;
 }
