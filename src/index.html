@@ -12,7 +12,12 @@
   </head>
   <body>
     <form id="idContainer" action="#" onsubmit="updateData();return false">
-      <label for="id">Enter Hospital ID:</id>
+      <label for="type">Type:</label>
+      <select id="entitytype">
+        <option value="hospital">Hospital</option>
+        <option value="physiciangroup">Physician Group</option>
+      </select>
+      <label for="id">ID:</label>
       <input id="entityid" type="number" value="4545">
     </form>
   </body>

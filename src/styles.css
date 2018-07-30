@@ -6,13 +6,23 @@ body {
     position:absolute;
     top:90vh;
     left:5vw;
-    font-family:Verdana, Geneva, sans-serif;
+    font-family:Verdana, Helvetica, sans-serif;
     font-weight:bold;
+    
 }
 
 #idContainer input {
     background-color:rgba(0,0,0,0);
-    font-family:Verdana, Geneva, sans-serif;
-    font-weight:bold;
+    font-family:Verdana, Helvetica, sans-serif;
+    /* font-weight:bold; */
     border:none;
+    font-size: 16px;
+}
+
+#idContainer select {
+    background-color:rgba(0,0,0,0);
+    font-family:Verdana, Helvetica, sans-serif;
+    /* font-weight:bold; */
+    border:none;
+    font-size: 16px;
 }

@@ -40,8 +40,8 @@ function authenticate(email, password) {
         headers: {'Content-Type': 'application/json'},
         body: '{"email":"' + email + '","password":"' + password + '"}'
       },
-      request => {
-        authToken = request;
+      response => {
+        authToken = response;
         setCookie("Token", authToken, 1);
         getData(document.querySelector('#entityid').value, 'hospital', 'physiciangroup');
       }
@@ -65,7 +65,7 @@ function getData(id, fromDataSource, toDataSource) {
 }
 
 function getAffiliationData(id, fromDataSource, toDataSource, callback) {
-  return new Promise((resolve, reject) => {
+  return new Promise((resolve) => {
     httpDo(
       'https://api.torchinsight.com/data/' + fromDataSource + '/' + id + '/affiliations/' + toDataSource,
       {
@@ -75,15 +75,15 @@ function getAffiliationData(id, fromDataSource, toDataSource, callback) {
           'Authorization': 'Bearer ' + authToken
         }
       },
-      request => {
-        resolve(callback(JSON.parse(request)));
+      response => {
+        resolve(callback(JSON.parse(response)));
       }
     );
   });
 }
 
 function getPrimaryEntityData(id, entityDataSource, callback) {
-  return new Promise((resolve, reject) => {
+  return new Promise((resolve) => {
     httpDo(
       'https://api.torchinsight.com/data/' + entityDataSource + '/',
       {
@@ -94,8 +94,8 @@ function getPrimaryEntityData(id, entityDataSource, callback) {
         },
         body: '{"fields":["' + datasetFields[entityDataSource].primaryname + '","' + datasetFields[entityDataSource].id + '"],"filters":[{"field":"' + datasetFields[entityDataSource].id + '","test":"=","value":' + id + '}]}'
       },
-      request => {
-        resolve(callback(JSON.parse(request)));
+      response => {
+        resolve(callback(JSON.parse(response)));
       }
     );
   });
@@ -104,18 +104,38 @@ function getPrimaryEntityData(id, entityDataSource, callback) {
 function populateGraph(affiliatedEntityArray, primaryEntityData, affiliatedEntityType, primaryEntityType) {
   const centerX = window.innerWidth / 2 - 50;
   const centerY = window.innerHeight / 2 - 50;
-  nodes.push(new Entity(centerX, centerY, 100, primaryEntityData[0][datasetFields[primaryEntityType].primaryname], primaryEntityType, primaryEntityData[0][datasetFields[primaryEntityType].id]));
+
+  nodes.push(
+    new Entity(
+      centerX, 
+      centerY, 
+      100, 
+      primaryEntityData[0][datasetFields[primaryEntityType].primaryname], 
+      primaryEntityType, 
+      primaryEntityData[0][datasetFields[primaryEntityType].id]
+    )
+  );
 
   const filtered = affiliatedEntityArray.filter(e => parseInt(e[Object.keys(e)[2]]) >= 1);
   const nodeAngle = (2 * PI) / filtered.length;
 
-  filtered.forEach((e, i) => {
-    const size = parseInt(e[Object.keys(e)[2]]);
+  filtered.forEach((entity, i) => {
+    const size = parseInt(entity[Object.keys(entity)[2]]);
     const radius = size + 50;
     const nodeX = centerX + (300 * cos((nodeAngle * i) - PI/2));
     const nodeY = centerY + (300 * sin((nodeAngle * i) - PI/2));
-    console.log(e);
-    nodes.push(new WeightedEntity(nodeX, nodeY, radius, e[datasetFields[affiliatedEntityType].affiliationname], affiliatedEntityType, e.id, size ));
+
+    nodes.push(
+      new WeightedEntity(
+        nodeX, 
+        nodeY, 
+        radius, 
+        entity[datasetFields[affiliatedEntityType].affiliationname], 
+        affiliatedEntityType, 
+        entity.id, 
+        size 
+      )
+    );
   });
 
   nodes.slice(1).forEach(e => {
@@ -131,7 +151,11 @@ function updateDataForID(id, fromDataset, toDataset) {
 }
 
 function updateData() {
-  updateDataForID(document.querySelector('#entityid').value, 'hospital', 'physiciangroup');
+  if (document.querySelector('#entitytype').value === 'physiciangroup') {
+    updateDataForID(document.querySelector('#entityid').value, 'physiciangroup', 'hospital');
+  } else {
+    updateDataForID(clickedNode.id, 'hospital', 'physiciangroup');
+  }
 }
 
 function setup() {
@@ -150,10 +174,13 @@ function draw() {
 }
 
 function mouseClicked() {
-  const clickedNode = nodes.filter(n => n.contains(mouseX, mouseY))[0];
-  console.log(clickedNode);
+  //Take the last element of the array because they are drawn last and appear on top as a result
+  const clickedNode = nodes.filter(n => n.contains(mouseX, mouseY)).slice(-1)[0];
 
   if (clickedNode != null) {
+    document.querySelector('#entitytype').value = clickedNode.type;
+    document.querySelector('#entityid').value = clickedNode.id;
+
     if (clickedNode.type === 'physiciangroup') {
       updateDataForID(clickedNode.id, 'physiciangroup', 'hospital');
     } else {
@@ -170,7 +197,10 @@ class GraphNode {
   }
 
   draw() {
+    stroke('black');
+    strokeWeight(2);
     ellipse(this.x, this.y, this.radius * 2);
+    strokeWeight(1);
   }
 
   contains(x, y) {
@@ -194,7 +224,10 @@ class Entity extends GraphNode {
   draw() {
     super.draw();
     textAlign(CENTER, CENTER);
-    text(this.label, this.x - this.radius, this.y - this.radius, this.radius * 2, this.radius * 2);
+    textFont('Verdana');
+    noStroke();
+    text(this.label, this.x - this.radius + 5, this.y - this.radius + 5, this.radius * 2 - 10, this.radius * 2 - 10);
+    stroke('black');
   }
 }
 
@@ -224,6 +257,7 @@ class Edge {
     let l = this.left;
     let r = this.right;
     let theta = atan((r.y - l.y)/(r.x - l.x))
+    
     line(l.x + (l.radius * cos(theta)), l.y + (l.radius * sin(theta)), r.x - (r.radius * cos(theta)), r.y - (r.radius * sin(theta)));
   }
 }
