@@ -60,7 +60,7 @@ svg line {
 }
 
 svg circle {
-    fill: rgb(207, 89, 34);
+    fill: #ee761e;
     stroke: black;
     stroke-width: 2px;
 }
