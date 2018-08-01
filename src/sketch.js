@@ -283,7 +283,7 @@ class WeightedEntity extends Entity {
   }
 
   get label() {
-    return this.name + '<br>' + this.weight + '%';
+    return this.name + '<br><span class="subtitle">' + this.weight + '%</span>';
   }
 }
 

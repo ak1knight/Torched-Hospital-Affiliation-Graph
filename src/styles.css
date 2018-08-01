@@ -43,6 +43,10 @@ svg p {
     font-size: 12px;
 }
 
+svg p .subtitle {
+    color: rgba(255, 255, 255, 0.50);
+}
+
 svg div.entityTitle {
     height: calc(100% - 10px);
     display:flex;
@@ -52,9 +56,11 @@ svg div.entityTitle {
 }
 
 svg line {
-    stroke: rgb(40, 45, 51);
+    stroke: rgb(0, 0, 0);
 }
 
 svg circle {
-    fill: rgb(42, 56, 51);
+    fill: rgb(207, 89, 34);
+    stroke: black;
+    stroke-width: 2px;
 }
