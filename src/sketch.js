@@ -16,20 +16,16 @@ var datasetFields = {
   }
 }
 
-function preload() {
-  //Use dummy data when testing to not constantly ping the server
-  //populateGraph(JSON.parse(data), JSON.parse(hospData));
-  sendHttpRequest(
-    '../credentials.json',
-    {
-      method: 'GET',
-      headers: {'Content-Type': 'application/json'}
-    },
-    request => {
-      authenticate(request.email, request.password);
-    }
-  )
-}
+sendHttpRequest(
+  '../credentials.json',
+  {
+    method: 'GET',
+    headers: {'Content-Type': 'application/json'}
+  },
+  request => {
+    authenticate(request.email, request.password);
+  }
+)
 
 function authenticate(email, password) {
   authToken = getCookie('Token');
@@ -60,7 +56,7 @@ function getData(id, fromDataSource, toDataSource) {
     getPrimaryEntityData(id, fromDataSource, data => { primaryEntityData = data })
   ]).then(() => {
     populateGraph(affiliationData, primaryEntityData, toDataSource, fromDataSource);
-    redraw();
+    runDraw();
   });
 }
 
@@ -117,13 +113,13 @@ function populateGraph(affiliatedEntityArray, primaryEntityData, affiliatedEntit
   );
 
   const filtered = affiliatedEntityArray.filter(e => parseInt(e[Object.keys(e)[2]]) >= 1);
-  const nodeAngle = (2 * PI) / filtered.length;
+  const nodeAngle = (2 * Math.PI) / filtered.length;
 
   filtered.forEach((entity, i) => {
     const size = parseInt(entity[Object.keys(entity)[2]]);
     const radius = size + 50;
-    const nodeX = centerX + (300 * cos((nodeAngle * i) - PI/2));
-    const nodeY = centerY + (300 * sin((nodeAngle * i) - PI/2));
+    const nodeX = centerX + (300 * Math.cos((nodeAngle * i) - Math.PI/2));
+    const nodeY = centerY + (300 * Math.sin((nodeAngle * i) - Math.PI/2));
 
     nodes.push(
       new WeightedEntity(
@@ -141,8 +137,6 @@ function populateGraph(affiliatedEntityArray, primaryEntityData, affiliatedEntit
   nodes.slice(1).forEach(e => {
     edges.push(new Edge(nodes[0], e));
   });
-
-  runDraw();
 }
 
 function sendHttpRequest(url, options, callback) {
@@ -170,6 +164,11 @@ function updateDataForID(id, fromDataset, toDataset) {
   nodes = [];
   edges = [];
 
+  document.querySelector('#chart').innerHTML = '';
+
+  document.querySelector('#entitytype').value = fromDataset;
+  document.querySelector('#entityid').value = id;
+
   getData(id, fromDataset, toDataset);
 }
 
@@ -177,23 +176,8 @@ function updateData() {
   if (document.querySelector('#entitytype').value === 'physiciangroup') {
     updateDataForID(document.querySelector('#entityid').value, 'physiciangroup', 'hospital');
   } else {
-    updateDataForID(clickedNode.id, 'hospital', 'physiciangroup');
+    updateDataForID(document.querySelector('#entityid').value, 'hospital', 'physiciangroup');
   }
-}
-
-function setup() {
-  createCanvas(window.innerWidth, window.innerHeight);
-  noLoop();
-}
-
-function draw() {
-  // background(255);
-  // nodes.forEach(n => {
-  //   n.draw();
-  // });
-  // edges.forEach(e => {
-  //   e.draw();
-  // });
 }
 
 function runDraw() {
@@ -203,24 +187,6 @@ function runDraw() {
   edges.forEach(e => {
     e.draw();
   });
-}
-
-function mouseClicked() {
-  //Take the last element of the array because they are drawn last and appear on top as a result
-  const clickedNode = nodes.filter(n => n.contains(mouseX, mouseY)).slice(-1)[0];
-
-  if (clickedNode != null) {
-    document.querySelector('#entitytype').value = clickedNode.type;
-    document.querySelector('#entityid').value = clickedNode.id;
-
-    document.querySelector('#chart').innerHTML = '';
-
-    if (clickedNode.type === 'physiciangroup') {
-      updateDataForID(clickedNode.id, 'physiciangroup', 'hospital');
-    } else {
-      updateDataForID(clickedNode.id, 'hospital', 'physiciangroup');
-    }
-  }
 }
 
 class GraphNode {
@@ -254,6 +220,7 @@ class Entity extends GraphNode {
     this.name = name;
     this.type = type;
     this.id = id;
+    this.drawingGroup.addEventListener("click", this);
   }
 
   get label() {
@@ -268,11 +235,18 @@ class Entity extends GraphNode {
     text.setAttributeNS(null, "y", this.y - this.radius);
     text.setAttributeNS(null, "width", this.radius * 2);
     text.setAttributeNS(null, "height", this.radius * 2);
-    text.setAttributeNS(null, "class", "entityTitle");
 
     text.innerHTML = '<div class="entityTitle"><p>'+this.label+'</p></div>';
 
     this.drawingGroup.appendChild(text);
+  }
+
+  handleEvent() {
+    if (this.type === 'physiciangroup') {
+      updateDataForID(this.id, 'physiciangroup', 'hospital');
+    } else {
+      updateDataForID(this.id, 'hospital', 'physiciangroup');
+    }
   }
 }
 
@@ -301,14 +275,14 @@ class Edge {
   draw() {
     let l = this.left;
     let r = this.right;
-    let theta = atan((r.y - l.y)/(r.x - l.x))
+    let theta = Math.atan((r.y - l.y)/(r.x - l.x))
 
     let line = document.createElementNS("http://www.w3.org/2000/svg","line");
 
-    line.setAttributeNS(null, "x1", l.x + (l.radius * cos(theta)));
-    line.setAttributeNS(null, "y1", l.y + (l.radius * sin(theta)));
-    line.setAttributeNS(null, "x2", r.x - (r.radius * cos(theta)));
-    line.setAttributeNS(null, "y2", r.y - (r.radius * sin(theta)));
+    line.setAttributeNS(null, "x1", l.x + (l.radius * Math.cos(theta)));
+    line.setAttributeNS(null, "y1", l.y + (l.radius * Math.sin(theta)));
+    line.setAttributeNS(null, "x2", r.x - (r.radius * Math.cos(theta)));
+    line.setAttributeNS(null, "y2", r.y - (r.radius * Math.sin(theta)));
 
     document.getElementById("chart").appendChild(line);
   }
