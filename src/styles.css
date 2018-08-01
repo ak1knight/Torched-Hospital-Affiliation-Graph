@@ -44,17 +44,17 @@ svg p {
 }
 
 svg div.entityTitle {
-    height: 100%;
-    width: 100%;
+    height: calc(100% - 10px);
     display:flex;
     justify-content:center;
     align-items:center;
+    margin: 5px;
 }
 
 svg line {
-    stroke: rgb(238, 64, 64);
+    stroke: rgb(40, 45, 51);
 }
 
 svg circle {
-    fill: rebeccapurple;
+    fill: rgb(42, 56, 51);
 }

@@ -19,7 +19,7 @@ var datasetFields = {
 function preload() {
   //Use dummy data when testing to not constantly ping the server
   //populateGraph(JSON.parse(data), JSON.parse(hospData));
-  httpDo(
+  sendHttpRequest(
     '../credentials.json',
     {
       method: 'GET',
@@ -34,7 +34,7 @@ function preload() {
 function authenticate(email, password) {
   authToken = getCookie('Token');
   if (authToken == "") {
-    httpDo('https://api.torchinsight.com/authenticate',
+    sendHttpRequest('https://api.torchinsight.com/authenticate',
       {
         method: 'POST',
         headers: {'Content-Type': 'application/json'},
@@ -66,7 +66,7 @@ function getData(id, fromDataSource, toDataSource) {
 
 function getAffiliationData(id, fromDataSource, toDataSource, callback) {
   return new Promise((resolve) => {
-    httpDo(
+    sendHttpRequest(
       'https://api.torchinsight.com/data/' + fromDataSource + '/' + id + '/affiliations/' + toDataSource,
       {
         method: 'GET',
@@ -84,7 +84,7 @@ function getAffiliationData(id, fromDataSource, toDataSource, callback) {
 
 function getPrimaryEntityData(id, entityDataSource, callback) {
   return new Promise((resolve) => {
-    httpDo(
+    sendHttpRequest(
       'https://api.torchinsight.com/data/' + entityDataSource + '/',
       {
         method: 'POST',
@@ -143,6 +143,27 @@ function populateGraph(affiliatedEntityArray, primaryEntityData, affiliatedEntit
   });
 
   runDraw();
+}
+
+function sendHttpRequest(url, options, callback) {
+  let httpRequest = new XMLHttpRequest();
+  httpRequest.open(options.method, url, true);
+
+  Object.keys(options.headers).forEach(e => {
+    httpRequest.setRequestHeader(e, options.headers[e]);
+  });
+
+  httpRequest.onreadystatechange = () => {
+    if (httpRequest.readyState === XMLHttpRequest.DONE) {
+      if (httpRequest.status === 200) {
+        callback(httpRequest.responseText);
+      } else {
+        alert('There was a problem with the request.');
+      }
+    }
+  }
+
+  options.body == null ? httpRequest.send() : httpRequest.send(options.body);
 }
 
 function updateDataForID(id, fromDataset, toDataset) {
@@ -243,10 +264,10 @@ class Entity extends GraphNode {
     super.draw();
     let text = document.createElementNS("http://www.w3.org/2000/svg","foreignObject");
 
-    text.setAttributeNS(null, "x", this.x - this.radius + 5);
-    text.setAttributeNS(null, "y", this.y - this.radius + 5);
-    text.setAttributeNS(null, "width", this.radius * 2 - 10);
-    text.setAttributeNS(null, "height", this.radius * 2 - 10);
+    text.setAttributeNS(null, "x", this.x - this.radius);
+    text.setAttributeNS(null, "y", this.y - this.radius);
+    text.setAttributeNS(null, "width", this.radius * 2);
+    text.setAttributeNS(null, "height", this.radius * 2);
     text.setAttributeNS(null, "class", "entityTitle");
 
     text.innerHTML = '<div class="entityTitle"><p>'+this.label+'</p></div>';
